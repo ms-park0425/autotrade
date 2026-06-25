@@ -1,0 +1,48 @@
+{
+  "scoring": {
+    "fundamentals": 40,
+    "theme": 30,
+    "technical": 20,
+    "investor_flow": 10
+  },
+  "filters": {
+    "min_market_cap": 500000000000,
+    "min_daily_value": 5000000000,
+    "min_score": 70.0,
+    "min_eps_growth": 10.0,
+    "max_per": 50.0,
+    "max_debt_ratio": 200.0
+  },
+  "portfolio": {
+    "max_stocks": 20,
+    "max_per_stock": 0.05,
+    "max_per_sector": 0.30
+  },
+  "risk": {
+    "stop_loss": -0.20,
+    "take_profit_1": 0.50,
+    "take_profit_2": 1.00,
+    "portfolio_mdd_warning": -0.30
+  },
+  "schedule": {
+    "day": "sunday",
+    "time": "20:00"
+  },
+  "structural_themes": [
+    "HBM(고대역메모리)",
+    "AI반도체",
+    "반도체장비",
+    "PCB(FPCB)",
+    "CoWoS패키징",
+    "원자력발전",
+    "전력망",
+    "2차전지",
+    "전기차",
+    "방위산업",
+    "우주항공",
+    "드론",
+    "광통신",
+    "온디바이스AI",
+    "조선"
+  ]
+}

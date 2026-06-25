@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 환경 변수
+.env
+.env.local
+
+# 데이터 파일
+*.csv
+*.json.bak
+*.jsonl
+
+# 로그
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archive (나중에 삭제 가능)
+# archive/
+
+# 백테스트 결과 (용량 큰 파일)
+strategies/*/data/*.csv
+strategies/*/data/backtest/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# 임시 파일
+tmp/
+temp/
+*.tmp

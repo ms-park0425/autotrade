@@ -1,0 +1,44 @@
+{
+  "scoring": {
+    "chart_pattern": 40,
+    "volume": 30,
+    "order_book": 20,
+    "theme": 10
+  },
+  "filters": {
+    "min_change_1h": 3.0,
+    "min_volume_ratio": 2.0,
+    "min_bid_ratio": 0.55,
+    "min_score": 60.0
+  },
+  "trading": {
+    "entry_window_start": "10:00",
+    "entry_window_end": "10:30",
+    "caution_start": "11:30",
+    "caution_end": "13:00",
+    "danger_start": "14:30",
+    "take_profit_1": 0.05,
+    "take_profit_2": 0.07,
+    "stop_loss_1": -0.02,
+    "stop_loss_2": -0.03,
+    "time_stop_warning": "14:00",
+    "time_stop_final": "15:00"
+  },
+  "risk": {
+    "max_per_trade": 0.10,
+    "max_positions": 3,
+    "daily_loss_limit": -0.05
+  },
+  "monitoring": {
+    "scan_interval_seconds": 60,
+    "alert_threshold_pct": 2.0,
+    "alert_volume_spike": 3.0,
+    "chart_lookback_minutes": 60
+  },
+  "scan_universe": {
+    "use_swing_candidates": true,
+    "use_market_cap_top": 200,
+    "use_volume_top": 100,
+    "use_hot_themes": true
+  }
+}
