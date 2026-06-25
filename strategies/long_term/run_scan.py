@@ -26,7 +26,7 @@ sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='repla
 ENGINE_DIR = os.path.join(os.path.dirname(__file__), "engine")
 sys.path.insert(0, ENGINE_DIR)
 
-from pipeline import run_v2_pipeline
+from pipeline import run
 
 
 def long_term_scan(top_n=20, min_score=70.0, send_telegram=True):
@@ -49,15 +49,13 @@ def long_term_scan(top_n=20, min_score=70.0, send_telegram=True):
     print("=" * 80)
 
     try:
-        result = run_v2_pipeline(
-            top_n=top_n,
+        result = run(
             min_score=min_score,
-            send_telegram=send_telegram,
-            telegram_compact=False
+            max_workers=8
         )
 
-        if result and len(result.get("picks", [])) > 0:
-            picks = result["picks"]
+        if result and len(result.get("recommendations", [])) > 0:
+            picks = result["recommendations"]
             print(f"\n✅ 완료: {len(picks)}개 종목 선정")
 
             # 간단한 결과 출력
