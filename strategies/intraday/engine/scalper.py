@@ -28,10 +28,8 @@ SCALP_TARGETS = [
 ]
 
 # 설정
-TAKE_PROFIT = 0.025      # +2.5% 익절
+TAKE_PROFIT = 0.03       # +3% 익절
 STOP_LOSS = -0.01        # -1% 손절
-MAX_HOLD_SECONDS = 180   # 3분 시간제한
-STRENGTH_THRESHOLD = 200 # 체결강도 200% 이상 (매수가 매도의 2배)
 POLL_INTERVAL = 1.0      # 1초마다 폴링
 
 
@@ -56,44 +54,29 @@ class Scalper:
         self.daily_pnl = 0.0
         self.daily_trades = 0
 
-        # 종목별 체결강도 히스토리
-        self.strength_history: dict[str, list[float]] = {s: [] for s in SCALP_TARGETS}
+        # 종목별 1분봉 히스토리 (open, close 저장)
+        self.candle_history: dict[str, list[dict]] = {s: [] for s in SCALP_TARGETS}
         # 종목별 최근 가격
         self.price_history: dict[str, list[float]] = {s: [] for s in SCALP_TARGETS}
 
     def update_market_data(self, symbol: str) -> dict | None:
-        """종목 시세 업데이트 (1초마다 호출)"""
+        """종목 1분봉 업데이트"""
         try:
-            # 최근 체결 50건
-            trades = self.api.get_trades(symbol, count=50)
-            if not trades or len(trades) < 3:
+            # 최근 1분봉 5개 가져오기
+            result = self.api.get_candles(symbol, interval="1m", count=5)
+            if not result:
+                return None
+            candles = result.get("candles", [])
+            if not candles:
                 return None
 
-            latest_price = float(trades[0]["price"])
+            # 캔들을 시간순 정렬 (API는 최신순)
+            candles = sorted(candles, key=lambda x: x["timestamp"])
 
-            # 체결강도 계산: 가격 상승 체결 = 매수, 하락 체결 = 매도
-            buy_volume = 0
-            sell_volume = 0
-            for i in range(len(trades) - 1):
-                vol = int(trades[i]["volume"])
-                curr_price = float(trades[i]["price"])
-                prev_price = float(trades[i + 1]["price"])
-                if curr_price > prev_price:
-                    buy_volume += vol
-                elif curr_price < prev_price:
-                    sell_volume += vol
-                else:
-                    # 동일가: 직전 방향 유지 대신 반반
-                    buy_volume += vol // 2
-                    sell_volume += vol // 2
+            # 1분봉 히스토리 저장
+            self.candle_history[symbol] = candles
 
-            strength = (buy_volume / sell_volume * 100) if sell_volume > 0 else 999
-
-            # 히스토리 누적
-            self.strength_history[symbol].append(strength)
-            if len(self.strength_history[symbol]) > 60:
-                self.strength_history[symbol] = self.strength_history[symbol][-60:]
-
+            latest_price = float(candles[-1]["closePrice"])
             self.price_history[symbol].append(latest_price)
             if len(self.price_history[symbol]) > 60:
                 self.price_history[symbol] = self.price_history[symbol][-60:]
@@ -101,39 +84,41 @@ class Scalper:
             return {
                 "symbol": symbol,
                 "price": latest_price,
-                "strength": strength,
+                "candles": candles,
             }
         except Exception:
             return None
 
     def check_entry_signal(self, symbol: str) -> bool:
-        """진입 시그널: 체결강도 상승 + 가격 상방돌파"""
-        str_hist = self.strength_history[symbol]
-        price_hist = self.price_history[symbol]
+        """진입 시그널: 분봉 2연속 양봉 + 계단식 상승"""
+        candles = self.candle_history.get(symbol, [])
 
-        if len(str_hist) < 2 or len(price_hist) < 3:
+        if len(candles) < 3:
             return False
 
-        # 체결강도 상승 중 (직전보다 올라가고 있음)
-        if not (str_hist[-1] > str_hist[-2]):
+        c1 = candles[-2]
+        c2 = candles[-1]
+
+        c1_bullish = float(c1["closePrice"]) > float(c1["openPrice"])
+        c2_bullish = float(c2["closePrice"]) > float(c2["openPrice"])
+
+        if not (c1_bullish and c2_bullish):
             return False
 
-        # 가격 상방돌파: 현재가 > 직전 2개 고가
-        current_price = price_hist[-1]
-        recent_high = max(price_hist[-3:-1])
-
-        if current_price <= recent_high:
+        # 계단식 상승 (종가가 순서대로 올라감)
+        if float(c2["closePrice"]) <= float(c1["closePrice"]):
             return False
 
         return True
 
     def check_exit_signal(self) -> str | None:
-        """청산 시그널 체크"""
+        """청산 시그널: +3% 익절 / -1% 손절"""
         if not self.position:
             return None
 
         symbol = self.position.symbol
         price_hist = self.price_history.get(symbol, [])
+
         if not price_hist:
             return None
 
@@ -141,17 +126,11 @@ class Scalper:
         entry_price = self.position.entry_price
         pnl_pct = (current_price - entry_price) / entry_price
 
-        # 익절
         if pnl_pct >= TAKE_PROFIT:
             return "TAKE_PROFIT"
 
-        # 손절
         if pnl_pct <= STOP_LOSS:
             return "STOP_LOSS"
-
-        # 시간제한
-        if self.position.hold_seconds >= MAX_HOLD_SECONDS:
-            return "TIME_STOP"
 
         return None
 
@@ -241,8 +220,8 @@ class Scalper:
         print("  1분봉 스캘핑 시작")
         print("=" * 70)
         print(f"  대상: {', '.join(SCALP_TARGETS[:5])}...")
-        print(f"  익절: +{TAKE_PROFIT*100:.1f}% | 손절: {STOP_LOSS*100:.1f}% | 시간제한: {MAX_HOLD_SECONDS}초")
-        print(f"  체결강도 기준: {STRENGTH_THRESHOLD}%")
+        print(f"  매수: 분봉 2연속 양봉 + 계단상승")
+        print(f"  매도: +{TAKE_PROFIT*100:.0f}% 익절 / {STOP_LOSS*100:.0f}% 손절")
         print(f"  시작: {datetime.now().strftime('%H:%M:%S')}")
         print("=" * 70)
 

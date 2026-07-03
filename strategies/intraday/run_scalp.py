@@ -12,7 +12,9 @@ import os
 import io
 import argparse
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+# 출력 버퍼 끄기 (실시간 로그 표시)
+sys.stdout.reconfigure(line_buffering=True)
+sys.stderr.reconfigure(line_buffering=True)
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from strategies.intraday.engine.toss_api import TossAPI
