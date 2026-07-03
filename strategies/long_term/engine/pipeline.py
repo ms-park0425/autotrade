@@ -194,22 +194,12 @@ def run(min_score: float = 45.0, max_workers: int = 8) -> Optional[Dict]:
             max_workers=max_workers,
         )
 
-        # 3패스(catchup) + 4패스(base 가중치) — V2-1 함수로 single source of truth
-        from scorer import calc_peer_catchup, apply_model_weights
+        # factor_df를 그대로 사용 (이미 expected_return_score 계산됨)
         if not factor_df.empty:
-            factor_results = calc_peer_catchup(
-                factor_df.to_dict("records"),
-                persistence_map=persistence_by_name,
-            )
-            scored_records = apply_model_weights(
-                [dict(r) for r in factor_results],  # 복사 — V2-1 prebuilt_factors는 catchup만 적용된 상태 유지
-                model="base",
-            )
-            scored_df = pd.DataFrame(scored_records).sort_values(
+            scored_df = factor_df.sort_values(
                 "expected_return_score", ascending=False
             ).reset_index(drop=True)
         else:
-            factor_results = []
             scored_df = factor_df
 
         # V2 base 필터 (기존 동작 유지)
@@ -259,8 +249,6 @@ def run(min_score: float = 45.0, max_workers: int = 8) -> Optional[Dict]:
             "rotations": rotations,
             "category_flow": category_flow,
             "structural_analysis": structural,
-            # V2-1이 재사용 (json 저장 시 _save_daily가 _ prefix 제외)
-            "_factor_results": factor_results,
         }
 
         _save_daily(result)
@@ -333,17 +321,8 @@ def refresh_us_only(min_score: float = 45.0, max_workers: int = 8) -> Optional[D
             max_workers=max_workers,
         )
 
-        from scorer import calc_peer_catchup, apply_model_weights
         if not factor_df.empty:
-            factor_results = calc_peer_catchup(
-                factor_df.to_dict("records"),
-                persistence_map=persistence_by_name,
-            )
-            scored_records = apply_model_weights(
-                [dict(r) for r in factor_results],
-                model="base",
-            )
-            scored_df = pd.DataFrame(scored_records).sort_values(
+            scored_df = factor_df.sort_values(
                 "expected_return_score", ascending=False
             ).reset_index(drop=True)
         else:
@@ -440,17 +419,8 @@ def refresh_kr_only(min_score: float = 45.0, max_workers: int = 8) -> Optional[D
             max_workers=max_workers,
         )
 
-        from scorer import calc_peer_catchup, apply_model_weights
         if not factor_df.empty:
-            factor_results = calc_peer_catchup(
-                factor_df.to_dict("records"),
-                persistence_map=persistence_by_name,
-            )
-            scored_records = apply_model_weights(
-                [dict(r) for r in factor_results],
-                model="base",
-            )
-            scored_df = pd.DataFrame(scored_records).sort_values(
+            scored_df = factor_df.sort_values(
                 "expected_return_score", ascending=False
             ).reset_index(drop=True)
         else:

@@ -1,0 +1,13 @@
+[
+  {
+    "symbol": "005930",
+    "entry_price": 304500.0,
+    "exit_price": 304500.0,
+    "quantity": 16,
+    "pnl_pct": 0.0,
+    "pnl_amount": 0.0,
+    "hold_seconds": 20.047028,
+    "reason": "FORCE_CLOSE",
+    "time": "2026-07-03T11:09:39.486371"
+  }
+]
