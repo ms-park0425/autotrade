@@ -28,9 +28,11 @@ SCALP_TARGETS = [
 ]
 
 # 설정
-TAKE_PROFIT = 0.03       # +3% 익절
-STOP_LOSS = -0.01        # -1% 손절
-POLL_INTERVAL = 1.0      # 1초마다 폴링
+TAKE_PROFIT = 0.02         # +2% 익절
+STOP_LOSS = -0.015         # -1.5% 손절
+ENTRY_START = "09:30"      # 09:30 이후만 진입
+COOLDOWN_MINUTES = 5       # 청산 후 5분 대기
+POLL_INTERVAL = 1.0        # 1초마다 폴링
 
 
 class ScalpPosition:
@@ -53,8 +55,9 @@ class Scalper:
         self.trade_log: list[dict] = []
         self.daily_pnl = 0.0
         self.daily_trades = 0
+        self.last_exit_time: datetime | None = None  # 쿨다운용
 
-        # 종목별 1분봉 히스토리 (open, close 저장)
+        # 종목별 1분봉 히스토리
         self.candle_history: dict[str, list[dict]] = {s: [] for s in SCALP_TARGETS}
         # 종목별 최근 가격
         self.price_history: dict[str, list[float]] = {s: [] for s in SCALP_TARGETS}
@@ -144,9 +147,25 @@ class Scalper:
         except Exception:
             return 0
 
+    def _is_cooldown(self) -> bool:
+        """청산 후 쿨다운 중인지 확인"""
+        if self.last_exit_time is None:
+            return False
+        elapsed = (datetime.now() - self.last_exit_time).total_seconds() / 60
+        return elapsed < COOLDOWN_MINUTES
+
     def enter(self, symbol: str) -> bool:
         """시장가 매수"""
         if self.position:
+            return False
+
+        # 진입 시간 제한
+        now_str = datetime.now().strftime('%H:%M')
+        if now_str < ENTRY_START:
+            return False
+
+        # 쿨다운 체크
+        if self._is_cooldown():
             return False
 
         price_hist = self.price_history.get(symbol, [])
@@ -211,6 +230,7 @@ class Scalper:
               f"| {hold_sec:.0f}초 보유")
 
         self.position = None
+        self.last_exit_time = datetime.now()
         return pnl_pct
 
     def run(self, duration_minutes: int = None):
@@ -220,8 +240,8 @@ class Scalper:
         print("  1분봉 스캘핑 시작")
         print("=" * 70)
         print(f"  대상: {', '.join(SCALP_TARGETS[:5])}...")
-        print(f"  매수: 분봉 2연속 양봉 + 계단상승")
-        print(f"  매도: +{TAKE_PROFIT*100:.0f}% 익절 / {STOP_LOSS*100:.0f}% 손절")
+        print(f"  매수: 분봉 2연속 양봉 + 계단상승 (09:30 이후, 쿨다운 {COOLDOWN_MINUTES}분)")
+        print(f"  매도: +{TAKE_PROFIT*100:.0f}% 익절 / {STOP_LOSS*100:.1f}% 손절")
         print(f"  시작: {datetime.now().strftime('%H:%M:%S')}")
         print("=" * 70)
 

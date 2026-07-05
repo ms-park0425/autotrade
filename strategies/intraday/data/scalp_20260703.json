@@ -1,24 +1,24 @@
 [
   {
-    "symbol": "068270",
-    "entry_price": 181700.0,
-    "exit_price": 181600.0,
-    "quantity": 27,
-    "pnl_pct": -0.0550357732526142,
-    "pnl_amount": -2700.0,
-    "hold_seconds": 168.068741,
-    "reason": "CANDLE_REVERSAL",
-    "time": "2026-07-03T11:27:25.900253"
+    "symbol": "028260",
+    "entry_price": 434500.0,
+    "exit_price": 429500.0,
+    "quantity": 11,
+    "pnl_pct": -1.1507479861910241,
+    "pnl_amount": -55000.0,
+    "hold_seconds": 246.278513,
+    "reason": "STOP_LOSS",
+    "time": "2026-07-03T14:47:10.118669"
   },
   {
     "symbol": "000660",
-    "entry_price": 2284000.0,
-    "exit_price": 2276500.0,
+    "entry_price": 2384000.0,
+    "exit_price": 2435000.0,
     "quantity": 2,
-    "pnl_pct": -0.3283712784588441,
-    "pnl_amount": -15000.0,
-    "hold_seconds": 52.644667,
-    "reason": "CANDLE_REVERSAL",
-    "time": "2026-07-03T11:31:03.799928"
+    "pnl_pct": 2.139261744966443,
+    "pnl_amount": 102000.0,
+    "hold_seconds": 1852.079154,
+    "reason": "FORCE_CLOSE",
+    "time": "2026-07-03T15:20:00.537861"
   }
 ]
